@@ -1,6 +1,7 @@
 import * as listItemsDB from '../db/list-items';
 import * as booksDB from '../db/books';
 
+//test done
 async function setListItem(req, res, next) {
   const {id} = req.params;
   const listItem = await listItemsDB.readById(id);
@@ -19,16 +20,16 @@ async function setListItem(req, res, next) {
     });
   }
 }
-
+//test done
 async function getListItems(req, res) {
   const listItems = await listItemsDB.query({ownerId: req.user.id});
   res.json({listItems: await expandBookDataMultiple(listItems)});
 }
-
+//test done
 async function getListItem(req, res) {
   res.json({listItem: await expandBookData(req.listItem)});
 }
-
+//test done without created successfully
 async function createListItem(req, res) {
   const {
     user: {id: ownerId},

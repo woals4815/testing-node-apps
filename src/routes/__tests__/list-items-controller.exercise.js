@@ -193,3 +193,75 @@ test('setListItem returns 403 error', async () => {
   expect(listItemsDB.readById).toHaveBeenCalledWith(fakeListItemId);
   expect(listItemsDB.readById).toHaveBeenCalledTimes(1);
 });
+
+test('getListItems returns a user list items', async () => {
+  const user = buildUser();
+  const books = [buildBook(), buildBook()];
+  const listItems = [
+    buildListItem({ownerId: user.id, bookId: books[0].id}),
+    buildListItem({ownerId: user.id, bookId: books[1].id}),
+  ];
+  const req = buildReq({user});
+  const res = buildRes();
+
+  booksDb.readManyById.mockResolvedValueOnce(books);
+  listItemsDB.query.mockResolvedValueOnce(listItems);
+
+  await listItemsController.getListItems(req, res);
+
+  expect(booksDb.readManyById).toHaveBeenCalledWith([books[0].id, books[1].id]);
+  expect(booksDb.readManyById).toHaveBeenCalledTimes(1);
+
+  expect(listItemsDB.query).toHaveBeenCalledTimes(1);
+  expect(listItemsDB.query).toHaveBeenCalledWith({ownerId: user.id});
+
+  expect(res.json).toHaveBeenCalledWith({
+    listItems: [
+      {
+        ...listItems[0],
+        book: books[0],
+      },
+      {
+        ...listItems[1],
+        book: books[1],
+      },
+    ],
+  });
+  expect(res.json).toHaveBeenCalledTimes(1);
+});
+
+test('createListItem creates and returns a list item', async () => {
+  const user = buildUser();
+  const book = buildBook();
+  const createListItem = buildListItem({ownerId: user.id, bookId: book.id});
+  const req = buildReq({user, body: {bookId: book.id}});
+  const res = buildRes();
+  listItemsDB.query.mockResolvedValueOnce([]);
+  listItemsDB.create.mockResolvedValueOnce(createListItem);
+  booksDb.readById.mockResolvedValueOnce(book);
+
+  await listItemsController.createListItem(req, res);
+
+  expect(res.json).toHaveBeenCalledTimes(1);
+  expect(res.json).toHaveBeenCalledWith({
+    listItem: {
+      ...createListItem,
+      book,
+    },
+  });
+
+  expect(booksDb.readById).toHaveBeenCalledTimes(1);
+  expect(booksDb.readById).toHaveBeenCalledWith(book.id);
+
+  expect(listItemsDB.query).toHaveBeenCalledTimes(1);
+  expect(listItemsDB.query).toHaveBeenCalledWith({
+    ownerId: user.id,
+    bookId: book.id,
+  });
+
+  expect(listItemsDB.create).toHaveBeenCalledTimes(1);
+  expect(listItemsDB.create).toHaveBeenCalledWith({
+    ownerId: user.id,
+    bookId: book.id,
+  });
+});
