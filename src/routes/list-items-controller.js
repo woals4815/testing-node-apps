@@ -50,12 +50,12 @@ async function createListItem(req, res) {
   const listItem = await listItemsDB.create({ownerId, bookId});
   res.json({listItem: await expandBookData(listItem)});
 }
-
+//test done
 async function updateListItem(req, res) {
   const updatedListItem = await listItemsDB.update(req.listItem.id, req.body);
   res.json({listItem: await expandBookData(updatedListItem)});
 }
-
+//test done
 async function deleteListItem(req, res) {
   await listItemsDB.remove(req.listItem.id);
   res.json({success: true});

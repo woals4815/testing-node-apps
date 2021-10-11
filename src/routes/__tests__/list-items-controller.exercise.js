@@ -79,7 +79,7 @@ import * as listItemsController from '../list-items-controller';
 import * as listItemsDB from '../../db/list-items';
 
 jest.mock('../../db/books');
-
+jest.mock('../../db/list-items.js');
 beforeEach(() => {
   jest.clearAllMocks();
 });
@@ -106,7 +106,7 @@ test('getListItem returns req.listItem', async () => {
   expect(res.json).toHaveBeenCalledTimes(1);
 });
 
-test('createListItem returns 400, No bookId provided ', async () => {
+test('createListItem returns 400, No bookId provided', async () => {
   const req = buildReq();
   const res = buildRes();
   await listItemsController.createListItem(req, res);
@@ -122,8 +122,6 @@ test('createListItem returns 400, No bookId provided ', async () => {
   `);
   expect(res.status).toHaveBeenCalledWith(400);
 });
-
-jest.mock('../../db/list-items.js');
 
 test('setListItem sets the listItem on the req', async () => {
   const user = buildUser();
@@ -322,4 +320,20 @@ test('updateListItem updates an existing list item', async () => {
       book,
     },
   });
+});
+
+test('deleteListItem', async () => {
+  const user = buildUser();
+  const book = buildBook();
+  const listItem = buildListItem({bookId: book.id, ownerId: user.id});
+  const req = buildReq({user, listItem});
+  const res = buildRes();
+
+  await listItemsController.deleteListItem(req, res);
+
+  expect(listItemsDB.remove).toHaveBeenCalledTimes(1);
+  expect(listItemsDB.remove).toHaveBeenCalledWith(listItem.id);
+
+  expect(res.json).toHaveBeenCalledTimes(1);
+  expect(res.json).toHaveBeenCalledWith({success: true});
 });
