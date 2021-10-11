@@ -69,6 +69,7 @@ import {
   buildRes,
   buildListItem,
   buildNext,
+  notes,
 } from 'utils/generate';
 
 import * as booksDb from '../../db/books';
@@ -291,4 +292,34 @@ test('createListItem returns 400 error', async () => {
 
   expect(res.status).toHaveBeenCalledTimes(1);
   expect(res.status).toHaveBeenCalledWith(400);
+});
+
+test('updateListItem updates an existing list item', async () => {
+  const user = buildUser();
+
+  const book = buildUser();
+  const listItem = buildListItem({ownerId: user.id, bookId: book.id});
+  const updates = {notes: notes()};
+  const mergedListItemAndUpdates = {...listItem, ...updates};
+  const req = buildReq({listItem, body: updates});
+  const res = buildRes();
+
+  listItemsDB.update.mockResolvedValueOnce(mergedListItemAndUpdates);
+  booksDb.readById.mockResolvedValueOnce(book);
+
+  await listItemsController.updateListItem(req, res);
+
+  expect(listItemsDB.update).toHaveBeenCalledTimes(1);
+  expect(listItemsDB.update).toHaveBeenCalledWith(listItem.id, updates);
+
+  expect(booksDb.readById).toHaveBeenCalledTimes(1);
+  expect(booksDb.readById).toHaveBeenCalledWith(listItem.bookId);
+
+  expect(res.json).toHaveBeenCalledTimes(1);
+  expect(res.json).toHaveBeenCalledWith({
+    listItem: {
+      ...mergedListItemAndUpdates,
+      book,
+    },
+  });
 });
