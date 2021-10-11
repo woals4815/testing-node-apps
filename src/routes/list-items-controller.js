@@ -29,7 +29,7 @@ async function getListItems(req, res) {
 async function getListItem(req, res) {
   res.json({listItem: await expandBookData(req.listItem)});
 }
-//test done without created successfully
+//test done
 async function createListItem(req, res) {
   const {
     user: {id: ownerId},
